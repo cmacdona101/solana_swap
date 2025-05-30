@@ -7,10 +7,14 @@ checks and token-to-token swaps on the Solana blockchain**.
 Current focus is on providing a lightweight balance checker; swap
 functions will follow in upcoming releases.
 
-## Requirements
+## Requirements (see `requirements.txt`)
 
 * Python 3.10+
-* `requests` (see `requirements.txt`)
+* `requests` 
+* 'solders'
+* 'solana' 
+* 'aiohttp'
+
 * Access to a Solana RPC endpoint (defaults to `https://api.mainnet-beta.solana.com`)
 
 ---
