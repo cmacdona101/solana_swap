@@ -50,6 +50,32 @@ def get_quote(input_mint: str,
 
     raise RuntimeError(f"Quote unavailable: {rsp}")
 
+def leg_label(leg: dict) -> str:
+    info = leg.get("swapInfo") or leg.get("ammInfo") or {}
+    dex  = info.get("dexLabel") or info.get("dex") or "unknown"
+    addr = info.get("dexAddress") or info.get("source") or ""
+    return f"{dex} ({addr[:4]}…)" if addr else dex
+
+
+def total_fees_ui(quote: Dict) -> float:
+    """
+    Sum `feeAmount` from every leg of routePlan and convert to *dst-token* units.
+    Returns 0.0 if Jupiter omitted fee data.
+    """
+    total = 0.0
+    for leg in quote.get("routePlan", []):
+        fee  = leg.get("feeAmount", 0)
+        dec  = leg.get("feeMintDecimals", 0)
+        total += float(fee) / 10 ** dec
+    return total
+
+def price_impact_pct(quote: Dict) -> float | None:
+    """Return price impact as float (pct) if present."""
+    try:
+        return float(quote["priceImpactPct"])
+    except Exception:
+        return None
+
 
 def build_swap_tx(quote: Dict, user_pubkey: str) -> bytes:
     body = {

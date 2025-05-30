@@ -96,6 +96,14 @@ class SolanaWallet:
         if not key:
             sys.exit("Error: set environment variable SOL_WALLET_PUBKEY first.")
         return cls(key)
+    
+    @classmethod
+    def from_str(cls, pubkey_str) -> "SolanaWallet":
+        """ for starting with a string pubkey instead of enviromental variable """        
+        key = pubkey_str
+        if not key:
+            sys.exit("Error: set environment variable SOL_WALLET_PUBKEY first.")
+        return cls(key)
 
     # ────────────────────────────────
     # Public API
@@ -186,8 +194,9 @@ class SolanaWallet:
 
 if __name__ == "__main__":
     wallet = SolanaWallet.from_env()
+    #wallet = SolanaWallet.from_str("H8VeYYAcrPUn6WyagGmaQBcsGkimKgoEeWGVXviZ71bG")
     wallet.refresh_balances()
     wallet.refresh_prices()
     wallet.display()
-#    print(wallet.balances['3NZ9JMVBmGAqocybic2c7LQCJScmgsAZ6vQqTDzcqmJh'].usd_price)
+    #print(wallet.balances['3NZ9JMVBmGAqocybic2c7LQCJScmgsAZ6vQqTDzcqmJh'].usd_price)
     

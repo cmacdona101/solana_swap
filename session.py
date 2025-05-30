@@ -11,10 +11,17 @@ from solders.keypair import Keypair
 from solders.pubkey import Pubkey
 from solana.rpc.types import TxOpts
 
+from solders.signature import Signature
+
 from rpc_pool import RpcPool
 from token_utils import TokenTools
 from signer import sign_swap_tx
-from jupiter_client import get_quote, build_swap_tx
+from jupiter_client import (
+    get_quote,
+    build_swap_tx,
+    total_fees_ui,
+    price_impact_pct,
+)
 from jupiter_helper import get_price, is_mint_tradable
 
 class SolanaSession(TokenTools, RpcPool):
@@ -58,7 +65,77 @@ class SolanaSession(TokenTools, RpcPool):
         sig    = await self._submit(tx)
 
         dst_ui = float(quote["outAmount"]) / 10 ** await self.decimals(dst)
-        return sig, dst_ui
+        #return sig, dst_ui
+        
+        fees_ui       = total_fees_ui(quote)
+        price_impact  = price_impact_pct(quote)
+        
+
+        tx_meta = await self.primary.get_transaction(
+            Signature.from_string(sig),
+            encoding="jsonParsed",
+            max_supported_transaction_version=0,
+        )
+
+        # handle both old and new structures in solana-py
+        val = tx_meta.value
+        if val is None:
+            lamports_fee = 0
+        elif hasattr(val, "meta"):                       # < solana-py 0.28
+            lamports_fee = val.meta.fee
+        elif hasattr(val, "transaction") and hasattr(val.transaction, "meta"):
+            lamports_fee = val.transaction.meta.fee      # ≥ 0.30
+        else:                                            # future-proof fallback
+            as_dict = getattr(val, "to_json", lambda: val)()
+            lamports_fee = as_dict.get("meta", {}).get("fee", 0)
+
+
+        # base fee = lamportsPerSignature * signature_count (Jupiter tx has 1 sig)
+        #latest = await self.primary.get_latest_blockhash()
+        #base_fee = latest.value.fee_calculator.lamports_per_signature
+        
+        # -- network / priority fee ---------------------------
+        #lamports_fee = fee_meta    # meta.fee you extracted earlier
+        base_fee     = await self.base_sig_fee_lamports(self.primary)
+        
+        priority_fee = max(lamports_fee - base_fee, 0)
+        sol_fee      = lamports_fee / 1e9
+        priority_sol = priority_fee / 1e9
+
+
+        
+
+        return {
+            "signature":   sig,
+            "dst_ui":      dst_ui,
+            "route_fees_ui":     fees_ui,
+            "priceImpact": price_impact,
+            "routePlan":   quote.get("routePlan"),
+            "solNetworkFee": sol_fee,
+            "priorityFeeSol": priority_sol
+        }        
+        
+    async def base_sig_fee_lamports(self, client: AsyncClient) -> int:
+        """
+        Return lamports_per_signature according to the current fee schedule.
+        Works on solana-py 0.30+; falls back to 5_000 lamports if needed.
+        """
+        try:
+            latest = await client.get_latest_blockhash()
+            # New API exposes it under 'value.feePerSignature' (>=1.18 RPC)
+            if hasattr(latest.value, "fee_per_signature"):
+                return latest.value.fee_per_signature
+            # Older RPC nodes (1.17) don't expose it; simulate a dummy message
+            from solders.message import Message
+            dummy = Message.new_with_blockhash([], [], latest.value.blockhash)
+            fee_resp = await client.get_fee_for_message(dummy)
+            if fee_resp.value is not None:
+                return fee_resp.value
+        except Exception:
+            pass
+        # Absolute fallback: default network fee
+        return 5_000      # lamports
+
 
     # ───────────────────────── internals ──────────────────────────────
     async def _submit(self, tx):
@@ -68,3 +145,7 @@ class SolanaSession(TokenTools, RpcPool):
         )
         await self.primary.confirm_transaction(sig.value, self.commitment)
         return str(sig.value)
+    
+    
+    
+    
