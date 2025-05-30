@@ -1,0 +1,11 @@
+# requirements.txt
+#
+# Core runtime dependencies
+solders>=0.14          # Rust-based Solana primitives: Keypair, Pubkey, Tx
+solana>=0.30           # Async RPC client (“solana-py” package on PyPI)
+aiohttp>=3.9           # Non-blocking HTTP for balance look-ups
+requests>=2.31         # Synchronous calls to Jupiter REST APIs
+
+# Optional / development extras
+python-dotenv>=1.0     # Load RPC_PRIMARY, WALLET_FILE, etc. from .env
+pytest>=8.0            # Unit-testing framework
