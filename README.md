@@ -1,23 +1,34 @@
-# solana_swap
-Python Library for Swapping Tokens on the Solana Blockchain
+# **solana_swap**
+Python toolkit for **querying balances, executing token–to-token swaps, and keeping an ledger of Solana-based transaction details**
 
+---
 
-A minimal collection of Python utilities that streamline **token balance
-checks and token-to-token swaps on the Solana blockchain**.  
-Current focus is on providing a lightweight balance checker; swap
-functions will follow in upcoming releases.
+## What it does
 
+| Capability | Details |
+|------------|---------|
+| **Balance look-ups** | One-liner helpers to fetch wallet balances for any SPL mint (native SOL included). |
+| **Live USD pricing** | Pulls real-time prices from Jupiter’s public API for any routable mint. |
+| **One-call swap** | `Transaction.transact()` wraps quote → tx build → signing → submission → confirmation. |
+| **Full audit trail** | Automatically records 40+ fields per swap (before/after/delta for SRC, DST & SOL in *units* **and** *USD*, fees, price impact, signature, timestamp) into `transactions.csv`. |
+| **Human-readable console output** | `pretty_print()` displays the swap in four tidy sections: **IN UNITS → IN USD → DELTAS → FEES & META** with correct rounding (2 dec, fees at 6 dec). |
+| **Data reload** | `Transaction.load_all()` hydrates every CSV row back into rich objects for analytics. |
 
+---
 
-## Requirements (see `requirements.txt`)
+## Requirements
+*(pinned versions in `requirements.txt`)*
 
-* Python 3.10+
-* `requests` 
-* 'solders'
-* 'solana' 
-* 'aiohttp'
+| Package   | Version |
+|-----------|---------|
+| Python    | 3.10 +  |
+| `solana`  | ≥ 0.30 |
+| `solders` | latest |
+| `requests`| latest |
+| `aiohttp` | latest |
 
-* Access to a Solana RPC endpoint (defaults to `https://api.mainnet-beta.solana.com`)
+You’ll also need a Solana RPC endpoint – defaults to  
+`https://api.mainnet-beta.solana.com`.
 
 ---
 
@@ -44,9 +55,49 @@ You agree to indemnify and hold harmless the author/contributors from and agains
 
 If any of these terms are unacceptable to you, do not use the software.
 
-
+---
 
 ## Installation
 
 ```bash
 TBD
+```
+---
+
+### Example Usage: Check a balance
+
+```python
+import asyncio
+from session import SolanaSession
+
+USDC = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
+
+async def run():
+    async with SolanaSession() as sess:
+        bal = await sess.ui_balance(USDC, sess.kp.pubkey())
+        print(f"USDC balance: {bal}")
+
+asyncio.run(run())
+
+```
+
+### Example Usage: Swap $25 of USDC to wBTC
+```python
+import asyncio
+from decimal import Decimal
+from transaction import Transaction
+
+USDC = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
+WBTC = "3NZ9JMVBmGAqocybic2c7LQCJScmgsAZ6vQqTDzcqmJh"
+
+async def run():
+    tx = await Transaction.transact(
+        src_token=USDC,
+        dst_token=WBTC,
+        usd_amount=Decimal("25")
+    )
+    tx.pretty_print()
+
+asyncio.run(run())
+```
+
