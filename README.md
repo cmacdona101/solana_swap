@@ -67,6 +67,12 @@ TBD
 ### Example Usage: Check a balance
 
 ```python
+
+# Note: Set environmental variables:
+#     RPC_Primary = The primary Solana RPC endpoint URL the library will use for
+#     all JSON-RPC calls (balance look-ups, price queries, submitting signed transactions, etc.).
+#     WALLET_FILE = Path on local machine to the wallet JSON file 
+
 import asyncio
 from session import SolanaSession
 
@@ -83,6 +89,12 @@ asyncio.run(run())
 
 ### Example Usage: Swap $25 of USDC to wBTC
 ```python
+
+# Note: Set environmental variables:
+#     RPC_Primary = The primary Solana RPC endpoint URL the library will use for
+#     all JSON-RPC calls (balance look-ups, price queries, submitting signed transactions, etc.).
+#     WALLET_FILE = Path on local machine to the wallet JSON file 
+
 import asyncio
 from decimal import Decimal
 from transaction import Transaction
