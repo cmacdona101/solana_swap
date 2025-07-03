@@ -23,8 +23,8 @@ from typing import Optional
 import requests
 
 # Jupiter endpoints
-JUPITER_TRADABLE_MINTS_URL = "https://api.jup.ag/tokens/v1/mints/tradable"
-JUPITER_PRICE_URL = "https://api.jup.ag/price/v2"
+JUPITER_TRADABLE_MINTS_URL = "https://lite-api.jup.ag/tokens/v1/mints/tradable"
+JUPITER_PRICE_URL = "https://lite-api.jup.ag/price/v2"
 
 # ---------------------------------------------------------------------------
 # Internal helpers
