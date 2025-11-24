@@ -24,6 +24,9 @@ from jupiter_client import (
 )
 from jupiter_helper import get_price, is_mint_tradable
 
+from dotenv import load_dotenv
+load_dotenv() 
+
 class SolanaSession(TokenTools, RpcPool):
     """Compose networking + token helpers into one object."""
 

@@ -13,6 +13,9 @@ from typing import Optional
 from solana.rpc.async_api import AsyncClient
 from solana.rpc.commitment import Commitment
 
+from dotenv import load_dotenv
+load_dotenv() 
+
 REFRESH_SEC = 30
 _DEFAULT_COMMIT = Commitment("finalized")
 
