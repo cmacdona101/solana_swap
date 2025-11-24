@@ -92,7 +92,7 @@ asyncio.run(run())
 
 ```
 
-### Example Usage: Swap $25 of USDC to wBTC
+### Example Usage: Swap $1 of USDC to wBTC
 ```python
 
 # Note: Set environmental variables:
