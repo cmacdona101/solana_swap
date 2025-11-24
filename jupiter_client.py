@@ -8,12 +8,13 @@ from __future__ import annotations
 
 import base64
 import os
-from functools import lru_cache
 from typing import Dict
 
 import requests
 
-JUP_QUOTE = "https://quote-api.jup.ag/v6/quote"
+
+
+JUP_QUOTE = "https://lite-api.jup.ag/swap/v1/quote"
 JUP_SWAP  = "https://lite-api.jup.ag/swap/v1/swap"
 SLIPPAGE_BPS = int(os.getenv("SLIPPAGE_BPS", 50))  # default 0.50 %
 
@@ -90,13 +91,4 @@ def build_swap_tx(quote: Dict, user_pubkey: str) -> bytes:
     return base64.b64decode(raw_b64)
 
 
-@lru_cache(maxsize=1)
-def _token_set() -> set[str]:
-    """Fetch Jupiter token list once per process."""
-    url = "https://token.jup.ag/all"
-    return {t["address"] for t in _req(url)}
 
-
-def assert_supported(mint: str) -> None:
-    if mint not in _token_set():
-        raise RuntimeError(f"Mint {mint} not recognised by Jupiter")
