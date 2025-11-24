@@ -75,13 +75,18 @@ TBD
 
 import asyncio
 from session import SolanaSession
+import os
+
 
 USDC = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
 
 async def run():
-    async with SolanaSession() as sess:
+    sess = SolanaSession()
+    try:
         bal = await sess.ui_balance(USDC, sess.kp.pubkey())
         print(f"USDC balance: {bal}")
+    finally:
+        await sess.close()
 
 asyncio.run(run())
 
@@ -96,8 +101,11 @@ asyncio.run(run())
 #     WALLET_FILE = Path on local machine to the wallet JSON file 
 
 import asyncio
+from session import SolanaSession
+from jupiter_transaction import Transaction
+import os
 from decimal import Decimal
-from transaction import Transaction
+
 
 USDC = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
 WBTC = "3NZ9JMVBmGAqocybic2c7LQCJScmgsAZ6vQqTDzcqmJh"
@@ -106,7 +114,7 @@ async def run():
     tx = await Transaction.transact(
         src_token=USDC,
         dst_token=WBTC,
-        usd_amount=Decimal("25")
+        usd_amount=Decimal("1.0")
     )
     tx.pretty_print()
 
