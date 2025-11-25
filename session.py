@@ -19,7 +19,6 @@ from signer import sign_swap_tx
 from jupiter_client import (
     get_quote,
     build_swap_tx,
-    total_fees_ui,
     price_impact_pct,
 )
 from jupiter_helper import get_price, is_mint_tradable
@@ -68,9 +67,35 @@ class SolanaSession(TokenTools, RpcPool):
         sig    = await self._submit(tx)
 
         dst_ui = float(quote["outAmount"]) / 10 ** await self.decimals(dst)
-        #return sig, dst_ui
         
-        fees_ui       = total_fees_ui(quote)
+        
+        # Improved fee accounting:
+        fees_by_mint_ui: dict[str, float] = {}
+        total_fees_dst_units: float = 0.0
+        total_fees_usd: float = 0.0
+
+        for leg in quote.get("routePlan", []):
+            info = leg.get("swapInfo") or {}
+            fee_amt = info.get("feeAmount") or leg.get("feeAmount")
+            fee_mint = info.get("feeMint") or leg.get("feeMint")
+            if not fee_amt or not fee_mint:
+                continue
+            try:
+                dec = await self.decimals(fee_mint)
+                fee_ui = float(fee_amt) / (10 ** dec)
+                fees_by_mint_ui[fee_mint] = fees_by_mint_ui.get(fee_mint, 0.0) + fee_ui
+                if fee_mint == dst:
+                    total_fees_dst_units += fee_ui
+                # USD conversion is best effort
+                try:
+                    p = await asyncio.to_thread(get_price, fee_mint)
+                    total_fees_usd += fee_ui * float(p)
+                except Exception:
+                    pass
+            except Exception:
+                # If decimals lookup fails, skip that leg rather than misreport
+                continue
+
         price_impact  = price_impact_pct(quote)
         
 
@@ -111,7 +136,9 @@ class SolanaSession(TokenTools, RpcPool):
         return {
             "signature":   sig,
             "dst_ui":      dst_ui,
-            "route_fees_ui":     fees_ui,
+            "route_fees_ui":     total_fees_dst_units,   # fees denominated in destination token units
+            "routeFeesUSD":      total_fees_usd,         # total fees converted to USD (best effort)
+            "routeFeesByMint":   fees_by_mint_ui,        # dict of fee-mint → fee in that mint's units
             "priceImpact": price_impact,
             "routePlan":   quote.get("routePlan"),
             "solNetworkFee": sol_fee,

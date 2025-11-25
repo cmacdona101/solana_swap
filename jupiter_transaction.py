@@ -212,6 +212,15 @@ class Transaction:
         return f"{Decimal(val):.6f}" if fee else f"{Decimal(val):.2f}"
 
     def pretty_print(self) -> None:
+        fees_usd = self.result.get("routeFeesUSD")
+        fees_by_mint = self.result.get("routeFeesByMint") or {}
+        if isinstance(fees_by_mint, dict):
+            fees_by_mint_str = ", ".join(
+                f"{mint}:{self._fmt(val, fee=True)}" for mint, val in fees_by_mint.items()
+            ) if fees_by_mint else "—"
+        else:
+            fees_by_mint_str = "—"
+
         rec = {
             "UTC time": self.ts_utc.isoformat(timespec="seconds"),
             "Source token": self.src_token,
@@ -239,6 +248,8 @@ class Transaction:
             "SOL delta (USD)":   self._fmt(self.sol_delta_usd),
             # fees & impact
             "Route fee (dst units)": self._fmt(self.route_fee_dst_units, fee=True),
+            "Route fee (USD)":       self._fmt(fees_usd or 0.0),
+            "Fees by mint (units)":  fees_by_mint_str,
             "Network fee (SOL)":     self._fmt(self.network_fee_sol_units, fee=True),
             "Priority fee (SOL)":    self._fmt(self.priority_fee_sol_units, fee=True),
             "Price impact %":        self._fmt(self.price_impact_pct),
