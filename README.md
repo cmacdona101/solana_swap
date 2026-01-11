@@ -66,10 +66,10 @@ pip install -e .
 ```
 
 
-From another project: 
+From another project (latest from main): 
 
 ```bash
-solana-swap @ git+https://github.com/cmacdona101/solana_swap@v0.1.0
+solana-swap @ git+https://github.com/cmacdona101/solana_swap@main
 ```
 
 ---
