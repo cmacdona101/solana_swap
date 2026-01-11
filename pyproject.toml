@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "solana-swap"
+version = "0.1.0"
+description = "Python toolkit for Solana balance queries and token swaps via Jupiter"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { file = "LICENSE" }
+authors = [{ name = "Curtis MacDonald" }]
+dependencies = [
+  "solana>=0.30",
+  "solders>=0.21",
+  "aiohttp>=3.9",
+  "requests>=2.31"
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-dir]
+"" = "src"

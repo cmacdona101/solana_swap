@@ -59,9 +59,19 @@ If any of these terms are unacceptable to you, do not use the software.
 
 ## Installation
 
+Local dev:
+
 ```bash
-TBD
+pip install -e .
 ```
+
+
+From another project: 
+
+```bash
+solana-swap @ git+https://github.com/cmacdona101/solana_swap@v0.1.0
+```
+
 ---
 
 ### Example Usage: Check a balance
@@ -74,7 +84,7 @@ TBD
 #     WALLET_FILE = Path on local machine to the wallet JSON file 
 
 import asyncio
-from session import SolanaSession
+from solana_swap import SolanaSession
 import os
 
 
@@ -101,8 +111,7 @@ asyncio.run(run())
 #     WALLET_FILE = Path on local machine to the wallet JSON file 
 
 import asyncio
-from session import SolanaSession
-from jupiter_transaction import Transaction
+from solana_swap import SolanaSession, Transaction
 import os
 from decimal import Decimal
 
